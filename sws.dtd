@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!ELEMENT sws (info, operator)>
+	<!ELEMENT info EMPTY>
+	<!ATTLIST info
+		author CDATA #FIXED "wu qiong"
+		department CDATA #FIXED "BBT-D-411"
+		updatetime CDATA #FIXED ""
+		column CDATA #FIXED "defaultcolumn"
+	>
+
+	<!ELEMENT operator (safety, process+)>
+	<!ATTLIST operator
+		model CDATA #FIXED "F18"
+		station CDATA #FIXED "060003"
+		position CDATA #FIXED "ML"
+	>
+
+		<!ELEMENT safety EMPTY>
+		<!ATTLIST safety
+			isESDShoes CDATA #FIXED "yes"
+			isWorkware CDATA #FIXED "yes"
+			isSafetyGlasses CDATA #FIXED "no"
+			isSafetyGloves CDATA #FIXED "yes"
+		>
+
+		<!ELEMENT process (description, tool, part, risk, comment, subprocess*)?>
+		<!ATTLIST process
+			image CDATA #IMPLIED
+			imagesize CDATA #FIXED ""
+			isKey CDATA #IMPLIED
+			option CDATA #IMPLIED
+			tvg CDATA #FIXED ""
+		>
+
+			<!ELEMENT description (#PCDATA)>
+
+			<!ELEMENT translation (#PCDATA)>
+
+			<!ELEMENT tool EMPTY>
+			<!ATTLIST tool
+				type CDATA #REQUIRED
+				torque CDATA #REQUIRED
+				class CDATA #REQUIRED
+				tolerance CDATA #REQUIRED
+				socket CDATA #REQUIRED
+			>
+
+			<!ELEMENT part EMPTY>
+			<!ATTLIST part
+				number CDATA #REQUIRED
+				quantity CDATA #REQUIRED
+				image CDATA #FIXED ""
+				name CDATA #FIXED ""
+			>
+
+			<!ELEMENT risk EMPTY>
+
+			<!ELEMENT comment (#PCDATA)>
+			<!ATTLIST comment isNoted CDATA #FIXED "" >
+
+			<!ELEMENT hcomment (#PCDATA)>
+
+			<!ELEMENT subprocess (description, tool, part+, risk, comment)>
+			<!ATTLIST subprocess
+				image CDATA #REQUIRED
+				imagesize CDATA #FIXED ""
+				isKey CDATA #REQUIRED
+				option CDATA #REQUIRED
+				tvg CDATA #FIXED ""
+			>
