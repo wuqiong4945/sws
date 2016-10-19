@@ -17,6 +17,8 @@ type OperatorStruct struct {
 	Station  string `xml:"station,attr"`
 	Position string `xml:"position,attr"`
 
+	FirstProcessNumber int `xml:"firstProcessNumber,attr"`
+
 	Safety    SafetyStruct    `xml:"safety"`
 	Processes []ProcessStruct `xml:"process"`
 }

@@ -208,13 +208,17 @@ func foTableBody(swsSrcContent *SwsStruct) string {
 						`
 	xmlPictureCellEnd := `</fo:table-cell></fo:table-row>` + "\n"
 
-	var s2 string
-	var processNumber int = 0
+	var xmlTextCellString string
+	var processNumber int = swsSrcContent.Operator.FirstProcessNumber
+	if processNumber == 0 {
+		// if first page, FirstProcessNumber is not set. ProcessNumber stars from 1.
+		processNumber = 1
+	}
 	var processContent []ProcessContent
 	for _, process := range swsSrcContent.Operator.Processes {
-		processNumber++
 		content := processTableBodyContent(process, strconv.Itoa(processNumber))
 		processContent = append(processContent, content...)
+		processNumber++
 	}
 
 	var xmlPictureCellBody string
@@ -314,14 +318,15 @@ func foTableBody(swsSrcContent *SwsStruct) string {
 				picPositionDownY = picPositionTopY + picHeight + 1
 			}
 		}
-		s2 += c.ProcessTextContent
+
+		xmlTextCellString += c.ProcessTextContent
 	}
 
 	xmlPictureCellBody += `</svg:svg></fo:instream-foreign-object></fo:block>` + "\n"
 	xmlPictureCellString := xmlPictureCellHead + xmlPictureCellBody + xmlPictureCellEnd
 
 	for i := 0; i < 160; i++ {
-		s2 += `<fo:table-row height="5mm" border-color="black" border-width="0.75pt" border-style="solid">
+		xmlTextCellString += `<fo:table-row height="5mm" border-color="black" border-width="0.75pt" border-style="solid">
         <fo:table-cell border-before-color="white" border-after-color="white" border-width="0.75pt" border-style="solid">
 					<fo:block/>
 				</fo:table-cell>
@@ -333,8 +338,8 @@ func foTableBody(swsSrcContent *SwsStruct) string {
 			`
 	}
 
-	s2 += `</fo:table-body>` + "\n"
-	return xmlPictureCellString + s2
+	xmlTextCellString += `</fo:table-body>` + "\n"
+	return xmlPictureCellString + xmlTextCellString
 }
 
 type ProcessContent struct {
