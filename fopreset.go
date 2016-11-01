@@ -356,7 +356,14 @@ func processTableBodyContent(process ProcessStruct, processNumberString string) 
 	content.ProcessPictureSize = process.ImageSize
 
 	var processTextContent, backgroundColour string
-	processTextContent += `<fo:table-row height="5mm" vertical-align="middle" border-color="black" border-width="0.75pt" border-style="solid">` + "\n"
+	// set main item background
+	if !strings.Contains(processNumberString, ".") {
+		backgroundColour = ` background-color="GhostWhite"`
+	} else {
+		backgroundColour = ""
+	}
+	processTextContent += `<fo:table-row` + backgroundColour + ` height="5mm" vertical-align="middle" border-color="black" border-width="0.75pt" border-style="solid">` + "\n"
+
 	processTextContent += `<fo:table-cell border-before-color="white" border-after-color="white" border-width="0.75pt" border-style="solid"><fo:block/></fo:table-cell>` + "\n"
 	for _, columnSetting := range columnSettings {
 		vals := columnSetting.Strings(",")
@@ -377,9 +384,24 @@ func processTableBodyContent(process ProcessStruct, processNumberString string) 
 		case "tvg":
 			processTextContent += `<fo:table-cell><fo:block text-align="center">` + process.Tvg + `</fo:block></fo:table-cell>` + "\n"
 		case "description":
-			processTextContent += `<fo:table-cell><fo:block text-align="left">` + process.Description + `</fo:block></fo:table-cell>` + "\n"
+			processTextContent += `<fo:table-cell>` + "\n"
+			processTextContent += `<fo:block text-align="left">` + process.Description + `</fo:block>` + "\n"
+			if cfg.Section("general").Key("showtranslations").String() == "yes" {
+				for _, translation := range process.Translations {
+					processTextContent += `<fo:block text-align="left">` + translation + `</fo:block>` + "\n"
+				}
+			}
+			processTextContent += `</fo:table-cell>` + "\n"
 		case "translation":
-			processTextContent += `<fo:table-cell><fo:block text-align="left">` + process.Translation + `</fo:block></fo:table-cell>` + "\n"
+			processTextContent += "<fo:table-cell>\n"
+			if process.Translations != nil {
+				for _, translation := range process.Translations {
+					processTextContent += `<fo:block text-align="left">` + translation + `</fo:block>` + "\n"
+				}
+			} else {
+				processTextContent += `<fo:block></fo:block>` + "\n"
+			}
+			processTextContent += "</fo:table-cell>\n"
 		case "time":
 			processTextContent += `<fo:table-cell><fo:block text-align="center">` + process.Time + `</fo:block></fo:table-cell>` + "\n"
 		case "tool":

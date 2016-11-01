@@ -38,14 +38,14 @@ type ProcessStruct struct {
 	IsKey     string `xml:"isKey,attr"`
 	Time      string `xml:"time,attr"`
 
-	Description string        `xml:"description"`
-	Translation string        `xml:"translation"`
-	Parts       []PartStruct  `xml:"part"`
-	Tool        ToolStruct    `xml:"tool"`
-	Risk        string        `xml:"risk"`
-	Check       CheckStruct   `xml:"check"`
-	Comment     CommentStruct `xml:"comment"`
-	Hcomment    string        `xml:"hcomment"`
+	Description  string        `xml:"description"`
+	Translations []string      `xml:"translation"`
+	Parts        []PartStruct  `xml:"part"`
+	Tool         ToolStruct    `xml:"tool"`
+	Risk         string        `xml:"risk"`
+	Check        CheckStruct   `xml:"check"`
+	Comment      CommentStruct `xml:"comment"`
+	Hcomment     string        `xml:"hcomment"`
 
 	SubProcesses []ProcessStruct `xml:"subprocess"`
 }
