@@ -10,6 +10,7 @@ type InfoStruct struct {
 	Department string `xml:"department,attr"`
 	UpdateTime string `xml:"updatetime,attr"`
 	Column     string `xml:"column,attr"`
+	Title      string `xml:"title,attr"`
 }
 
 type OperatorStruct struct {

@@ -46,6 +46,13 @@ func foLayout() string {
 }
 
 func foStaticContent(info InfoStruct, safety SafetyStruct) string {
+	var title string
+	if info.Title == "" {
+		title = "标 准 工 艺 操 作 指 导"
+	} else {
+		title = info.Title
+	}
+
 	s := `
 	<fo:page-sequence master-reference="standard">
     <!-- page head -->
@@ -59,12 +66,12 @@ func foStaticContent(info InfoStruct, safety SafetyStruct) string {
         <fo:table-body>
           <fo:table-row height="10mm" border-color="black" border-width="0.75pt" border-style="solid">
             <fo:table-cell><fo:block/></fo:table-cell>
-            <fo:table-cell><fo:block text-align="center" font-size="15pt">
-							标    准    工    艺    操    作    指    导
-						</fo:block></fo:table-cell>
-            <fo:table-cell><fo:block text-align="center">
-							<fo:external-graphic content-width="9mm" content-height="9mm" scaling="non-uniform" src="fop/images/bmw.png" />
-						</fo:block></fo:table-cell>
+            <fo:table-cell><fo:block text-align="center" font-size="15pt">` + title + `</fo:block></fo:table-cell>
+            <fo:table-cell>
+							<fo:block text-align="center">
+								<fo:external-graphic content-width="9mm" content-height="9mm" scaling="non-uniform" src="fop/images/bmw.png" />
+							</fo:block>
+						</fo:table-cell>
           </fo:table-row>
 				</fo:table-body>
 
