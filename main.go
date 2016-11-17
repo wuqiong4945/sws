@@ -98,7 +98,7 @@ func createSws(srcFolder, swsFolder string) {
 
 			foString := foXmlAndRootHead() +
 				foLayout() +
-				foStaticContent(swsSrcContent.Info, swsSrcContent.Operator.Safety) +
+				foStaticContent(swsSrcContent) +
 				foTableHeadAndColumn() +
 				foTableHeaderAndFooter(swsSrcContent.Operator) +
 				foTableBody(swsSrcContent) +
@@ -127,7 +127,7 @@ func createSws(srcFolder, swsFolder string) {
 			}
 
 		} else {
-			log.Println(srcFileInfo.Name() + " was not changed.")
+			log.Println(srcFileInfo.Name() + " is not changed.")
 		}
 	}
 

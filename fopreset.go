@@ -10,7 +10,7 @@ import (
 )
 
 func foXmlAndRootHead() string {
-	fontfamily := cfg.Section("font").Key("fontfamily").MustString("Arial Unicode MS,serif")
+	fontfamily := cfg.Section("font").Key("fontfamily").MustString("Microsoft JhengHei, serif")
 	fontsize := cfg.Section("font").Key("fontsize").MustString("7")
 
 	foXmlHead := `<?xml version="1.0" encoding="utf-8"?>` + "\n"
@@ -45,7 +45,10 @@ func foLayout() string {
 	return s
 }
 
-func foStaticContent(info InfoStruct, safety SafetyStruct) string {
+func foStaticContent(swsSrcContent *SwsStruct) string {
+	info := swsSrcContent.Info
+	safety := swsSrcContent.Operator.Safety
+
 	var title string
 	if info.Title == "" {
 		title = "标 准 工 艺 操 作 指 导"
@@ -180,7 +183,7 @@ func foTableHeadAndColumn() string {
 func foTableHeaderAndFooter(operator OperatorStruct) string {
 	foTableHeaderPic := `
         <fo:table-header>
-          <fo:table-row height="4mm" font-size="7pt" background-color="Gainsboro" border-color="black" border-width="0.75pt" border-style="solid">
+          <fo:table-row height="4mm" font-size="7pt" font-weight="bold" background-color="Gainsboro" border-color="black" border-width="0.75pt" border-style="solid">
             <fo:table-cell><fo:block text-align="center">车型</fo:block></fo:table-cell>
             <fo:table-cell><fo:block text-align="center">` + operator.Model + `</fo:block></fo:table-cell>
             <fo:table-cell><fo:block text-align="center">工位</fo:block></fo:table-cell>
@@ -362,14 +365,17 @@ func processTableBodyContent(process ProcessStruct, processNumberString string) 
 	content.ProcessPictureName = process.Image
 	content.ProcessPictureSize = process.ImageSize
 
-	var processTextContent, backgroundColour string
+	var processTextContent, backgroundColour, fontWeight string
 	// set main item background
 	if !strings.Contains(processNumberString, ".") {
-		backgroundColour = ` background-color="GhostWhite"`
-	} else {
 		backgroundColour = ""
+		fontWeight = ` font-weight="bold"`
+	} else {
+		// backgroundColour = ` background-color="GhostWhite"`
+		backgroundColour = ""
+		fontWeight = ``
 	}
-	processTextContent += `<fo:table-row` + backgroundColour + ` height="5mm" vertical-align="middle" border-color="black" border-width="0.75pt" border-style="solid">` + "\n"
+	processTextContent += `<fo:table-row` + backgroundColour + fontWeight + ` height="5mm" vertical-align="middle" border-color="black" border-width="0.75pt" border-style="solid">` + "\n"
 
 	processTextContent += `<fo:table-cell border-before-color="white" border-after-color="white" border-width="0.75pt" border-style="solid"><fo:block/></fo:table-cell>` + "\n"
 	for _, columnSetting := range columnSettings {
@@ -395,7 +401,7 @@ func processTableBodyContent(process ProcessStruct, processNumberString string) 
 			processTextContent += `<fo:block text-align="left">` + process.Description + `</fo:block>` + "\n"
 			if cfg.Section("general").Key("showtranslations").String() == "yes" {
 				for _, translation := range process.Translations {
-					processTextContent += `<fo:block text-align="left">` + translation + `</fo:block>` + "\n"
+					processTextContent += `<fo:block text-align="left" color="blue">` + translation + `</fo:block>` + "\n"
 				}
 			}
 			processTextContent += `</fo:table-cell>` + "\n"
@@ -455,7 +461,14 @@ func processTableBodyContent(process ProcessStruct, processNumberString string) 
 			} else {
 				backgroundColour = ""
 			}
-			processTextContent += `<fo:table-cell` + backgroundColour + `><fo:block text-align="left">` + process.Comment.Text + `</fo:block></fo:table-cell>` + "\n"
+
+			processTextContent += `<fo:table-cell` + backgroundColour + `>` + "\n"
+			processTextContent += `<fo:block text-align="left">` + process.Comment.Text + `</fo:block>` + "\n"
+			if cfg.Section("general").Key("showhcomment").String() == "yes" {
+				// processTextContent += `<fo:block text-align="left" color="red"><fo:inline font-style="italic" font-weight="bold">` + process.Hcomment + `</fo:inline></fo:block>` + "\n"
+				processTextContent += `<fo:block text-align="left" color="red">` + process.Hcomment + `</fo:block>` + "\n"
+			}
+			processTextContent += `</fo:table-cell>` + "\n"
 		case "hcomment":
 			processTextContent += `<fo:table-cell><fo:block text-align="left">` + process.Hcomment + `</fo:block></fo:table-cell>` + "\n"
 		default:
