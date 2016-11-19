@@ -6,11 +6,12 @@ type SwsStruct struct {
 }
 
 type InfoStruct struct {
-	Author     string `xml:"author,attr"`
-	Department string `xml:"department,attr"`
-	UpdateTime string `xml:"updatetime,attr"`
-	Column     string `xml:"column,attr"`
-	Title      string `xml:"title,attr"`
+	Author         string `xml:"author,attr"`
+	Department     string `xml:"department,attr"`
+	UpdateTime     string `xml:"updatetime,attr"`
+	Column         string `xml:"column,attr"`
+	Title          string `xml:"title,attr"`
+	AdditionalInfo string `xml:"additionalinfo,attr"`
 }
 
 type OperatorStruct struct {
@@ -32,12 +33,12 @@ type SafetyStruct struct {
 }
 
 type ProcessStruct struct {
-	Image     string `xml:"image,attr"`
-	ImageSize string `xml:"imagesize,attr"`
-	Option    string `xml:"option,attr"`
-	Tvg       string `xml:"tvg,attr"`
-	IsKey     string `xml:"isKey,attr"`
-	Time      string `xml:"time,attr"`
+	Image     string  `xml:"image,attr"`
+	ImageSize string  `xml:"imagesize,attr"`
+	Option    string  `xml:"option,attr"`
+	Tvg       string  `xml:"tvg,attr"`
+	IsKey     string  `xml:"isKey,attr"`
+	Time      float32 `xml:"time,attr"`
 
 	Description  string        `xml:"description"`
 	Translations []string      `xml:"translation"`
