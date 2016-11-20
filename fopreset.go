@@ -106,22 +106,22 @@ func foStaticContent(swsSrcContent *SwsStruct) string {
     <!-- page head -->
     <fo:static-content flow-name="page-head">
       <fo:block>
-			<fo:table display-align="center" border-collapse="collapse" table-layout="fixed" width="100%">
-				<fo:table-column column-width="30mm"/>
-				<fo:table-column column-width="233mm"/>
-				<fo:table-column column-width="30mm"/>
+				<fo:table display-align="center" text-align="center" table-layout="fixed" width="100%" border-width="0.75pt" border-style="solid">
+					<fo:table-column column-width="30mm"/>
+					<fo:table-column column-width="233mm"/>
+					<fo:table-column column-width="30mm"/>
 
-        <fo:table-body>
-          <fo:table-row height="10mm" border-color="black" border-width="0.75pt" border-style="solid">
-            <fo:table-cell><fo:block/></fo:table-cell>
-            <fo:table-cell><fo:block text-align="center" font-size="15pt">` + title + `</fo:block></fo:table-cell>
-            <fo:table-cell>
-							<fo:block text-align="center">
-								<fo:external-graphic content-width="9mm" content-height="9mm" scaling="non-uniform" src="fop/images/bmw.png" />
-							</fo:block>
-						</fo:table-cell>
-          </fo:table-row>
-				</fo:table-body>
+					<fo:table-body>
+						<fo:table-row height="10mm">
+							<fo:table-cell><fo:block/></fo:table-cell>
+							<fo:table-cell><fo:block font-size="15pt">` + title + `</fo:block></fo:table-cell>
+							<fo:table-cell>
+								<fo:block>
+									<fo:external-graphic content-width="9mm" content-height="9mm" scaling="non-uniform" src="fop/images/bmw.png" />
+								</fo:block>
+							</fo:table-cell>
+						</fo:table-row>
+					</fo:table-body>
 
         </fo:table>
       </fo:block>
@@ -131,20 +131,20 @@ func foStaticContent(swsSrcContent *SwsStruct) string {
     <fo:static-content flow-name="page-foot">
       <fo:block text-align="center" vertical-align="middle">
 
-        <fo:table font-size="8" display-align="center" border-collapse="collapse" table-layout="fixed" width="100%">
-          <fo:table-column column-width="30mm"  border-color="black" border-width="0.75pt" border-style="solid" />
-          <fo:table-column column-width="60mm"  border-color="black" border-width="0.75pt" border-style="solid" />
-          <fo:table-column column-width="1mm"   border-color="black" border-width="0.75pt" border-style="solid" />
-          <fo:table-column column-width="107mm" border-color="black" border-width="0.75pt" border-style="solid" />
-          <fo:table-column column-width="95mm"  border-color="black" border-width="0.75pt" border-style="solid" />
+				<fo:table font-size="8" display-align="center" table-layout="fixed" width="100%" border-width="0.75pt" border-style="solid">
+          <fo:table-column column-width="30mm"  border-width="0.75pt" border-style="solid" />
+          <fo:table-column column-width="60mm"  border-width="0.75pt" border-style="solid" />
+          <fo:table-column column-width="1mm"   border-width="0.75pt" border-style="solid" />
+          <fo:table-column column-width="107mm" border-width="0.75pt" border-style="solid" />
+          <fo:table-column column-width="95mm"  border-width="0.75pt" border-style="solid" />
 
           <fo:table-body>
 <!-- first row -->
-            <fo:table-row height="5mm" border-color="black" border-width="0.75pt" border-style="solid">
+            <fo:table-row height="5mm" border-width="0.75pt" border-style="solid">
               <fo:table-cell><fo:block>创建</fo:block></fo:table-cell>
               <fo:table-cell><fo:block>` + info.Author + `</fo:block></fo:table-cell>
 
-              <fo:table-cell empty-cells="show" number-rows-spanned="4"> <fo:block/> </fo:table-cell>
+              <fo:table-cell number-rows-spanned="4"> <fo:block/> </fo:table-cell>
 
               <fo:table-cell number-rows-spanned="2" border-after-color="white" border-end-color="white" border-width="0.75pt" border-style="solid">
                 <fo:block text-align="left">
@@ -165,13 +165,13 @@ func foStaticContent(swsSrcContent *SwsStruct) string {
             </fo:table-row>
 
 <!-- second row -->
-            <fo:table-row height="5mm" border-color="black" border-width="0.75pt" border-style="solid">
+            <fo:table-row height="5mm" border-width="0.75pt" border-style="solid">
               <fo:table-cell><fo:block>批准</fo:block></fo:table-cell>
               <fo:table-cell><fo:block/></fo:table-cell>
             </fo:table-row>
 
 <!-- third row -->
-            <fo:table-row height="5mm" border-color="black" border-width="0.75pt" border-style="solid">
+            <fo:table-row height="5mm" border-width="0.75pt" border-style="solid">
               <fo:table-cell><fo:block>部门</fo:block></fo:table-cell>
               <fo:table-cell><fo:block>` + info.Department + `</fo:block></fo:table-cell>
               <fo:table-cell number-rows-spanned="2" color="red" text-align="left" border-before-color="white" border-end-color="white" border-width="0.75pt" border-style="solid">
@@ -180,7 +180,7 @@ func foStaticContent(swsSrcContent *SwsStruct) string {
             </fo:table-row>
 
 <!-- forth row -->
-            <fo:table-row height="5mm" border-color="black" border-width="0.75pt" border-style="solid">
+            <fo:table-row height="5mm" border-width="0.75pt" border-style="solid">
               <fo:table-cell><fo:block>更新</fo:block></fo:table-cell>
               <fo:table-cell><fo:block>` + info.UpdateTime + `</fo:block></fo:table-cell>
             </fo:table-row>
@@ -197,21 +197,21 @@ func foStaticContent(swsSrcContent *SwsStruct) string {
 func foTableHeadAndColumn() string {
 	foTableHead := `
     <fo:flow flow-name="xsl-region-body">
-      <fo:table display-align="center" border-collapse="collapse" table-layout="fixed" width="100%">
+      <fo:table display-align="center" border-collapse="collapse" table-layout="fixed" width="100%" text-align="center" border-width="0.75pt" border-style="solid">
 			`
 	foTableColumnPic := `
-        <fo:table-column id= " model     " column-width= " 15mm " border-color= " black " border-width= " 0.75pt " border-style= " solid " />
-        <fo:table-column id= " model1    " column-width= " 15mm " border-color= " black " border-width= " 0.75pt " border-style= " solid " />
-        <fo:table-column id= " station   " column-width= " 15mm " border-color= " black " border-width= " 0.75pt " border-style= " solid " />
-        <fo:table-column id= " station1  " column-width= " 15mm " border-color= " black " border-width= " 0.75pt " border-style= " solid " />
-        <fo:table-column id= " operator  " column-width= " 15mm " border-color= " black " border-width= " 0.75pt " border-style= " solid " />
-        <fo:table-column id= " operator1 " column-width= " 15mm " border-color= " black " border-width= " 0.75pt " border-style= " solid " />
-        <fo:table-column id= " break     " column-width= " 1mm  " border-color= " black " border-width= " 0.75pt " border-style= " solid " />
+        <fo:table-column id="model    " column-width="15mm" border-width="0.75pt" border-style="solid" />
+        <fo:table-column id="model1   " column-width="15mm" border-width="0.75pt" border-style="solid" />
+        <fo:table-column id="station  " column-width="15mm" border-width="0.75pt" border-style="solid" />
+        <fo:table-column id="station1 " column-width="15mm" border-width="0.75pt" border-style="solid" />
+        <fo:table-column id="operator " column-width="15mm" border-width="0.75pt" border-style="solid" />
+        <fo:table-column id="operator1" column-width="15mm" border-width="0.75pt" border-style="solid" />
+        <fo:table-column id="break    " column-width="1mm " border-width="0.75pt" border-style="solid" />
 				`
 	var foTableColumnText string
 	for _, columnSetting := range columnSettings {
 		vals := columnSetting.Strings(",")
-		columnTextString := `<fo:table-column id= "` + vals[0] + `" column-width= "` + vals[1] + `mm" border-color= "black" border-width= "0.75pt" border-style= "solid" />`
+		columnTextString := `<fo:table-column id="` + vals[0] + `" column-width="` + vals[1] + `mm" border-width="0.75pt" border-style="solid" />`
 		foTableColumnText += columnTextString + "\n"
 	}
 
@@ -221,7 +221,7 @@ func foTableHeadAndColumn() string {
 func foTableHeaderAndFooter(operator OperatorStruct) string {
 	foTableHeaderPic := `
         <fo:table-header>
-          <fo:table-row height="4mm" font-size="7pt" text-align="center" font-weight="bold" background-color="Gainsboro" border-color="black" border-width="0.75pt" border-style="solid">
+          <fo:table-row height="4mm" font-size="7pt" font-weight="bold" background-color="Gainsboro" border-width="0.75pt" border-style="solid">
             <fo:table-cell><fo:block>车型</fo:block></fo:table-cell>
             <fo:table-cell><fo:block>` + operator.Model + `</fo:block></fo:table-cell>
             <fo:table-cell><fo:block>工位</fo:block></fo:table-cell>
@@ -250,11 +250,15 @@ func foTableHeaderAndFooter(operator OperatorStruct) string {
 
 func foTableBody(swsSrcContent *SwsStruct) string {
 	xmlPictureCellHead := `
-			<fo:table-body text-align="center">
-          <fo:table-row border-color="black" border-width="0.75pt" border-style="solid">
-            <fo:table-cell display-align="before" number-columns-spanned="6" number-rows-spanned="152">
+			<fo:table-body>
+          <fo:table-row border-width="0.75pt" border-style="solid">
+            <fo:table-cell display-align="before" number-columns-spanned="6" number-rows-spanned="100">
 						`
-	xmlPictureCellEnd := `</fo:table-cell></fo:table-row>` + "\n"
+	xmlPictureCellEnd := `
+						</fo:table-cell>
+						<fo:table-cell number-rows-spanned="100"><fo:block/></fo:table-cell>
+					</fo:table-row>
+					`
 
 	var xmlTextCellString string
 	var processNumber int = swsSrcContent.Operator.FirstProcessNumber
@@ -276,11 +280,9 @@ func foTableBody(swsSrcContent *SwsStruct) string {
 	picCellBlock := processPicBlockContent(processContent)
 	xmlPictureCellString := xmlPictureCellHead + picCellBlock + xmlPictureCellEnd
 
-	for i := 0; i < 160; i++ {
-		xmlTextCellString += `<fo:table-row height="5mm" border-color="black" border-width="0.75pt" border-style="solid">
-        <fo:table-cell border-before-color="white" border-after-color="white" border-width="0.75pt" border-style="solid">
-					<fo:block/>
-				</fo:table-cell>
+	for i := 0; i < 100; i++ {
+		xmlTextCellString += `
+			<fo:table-row height="5mm" border-width="0.75pt" border-style="solid">
 				<fo:table-cell><fo:block/></fo:table-cell>
 				<fo:table-cell><fo:block/></fo:table-cell>
 				<fo:table-cell><fo:block/></fo:table-cell>
@@ -316,9 +318,8 @@ func processTableBodyContent(process ProcessStruct, processNumberString string) 
 		backgroundColour = ""
 		fontWeight = ``
 	}
-	processTextContent += `<fo:table-row` + backgroundColour + fontWeight + ` height="5mm" vertical-align="middle" border-color="black" border-width="0.75pt" border-style="solid">` + "\n"
+	processTextContent += `<fo:table-row` + backgroundColour + fontWeight + ` height="5mm" vertical-align="middle" border-width="0.75pt" border-style="solid">` + "\n"
 
-	processTextContent += `<fo:table-cell border-before-color="white" border-after-color="white" border-width="0.75pt" border-style="solid"><fo:block/></fo:table-cell>` + "\n"
 	for _, columnSetting := range columnSettings {
 		vals := columnSetting.Strings(",")
 		switch vals[0] {
