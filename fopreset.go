@@ -62,9 +62,11 @@ func foStaticContent(swsSrcContent *SwsStruct) string {
 	info := swsSrcContent.Info
 	safety := swsSrcContent.Operator.Safety
 
-	// var additionalInfo string
 	blockBreak := `</fo:block><fo:block>`
-	additionalInfo := " *  " + info.AdditionalInfo + ";\n"
+	var additionalInfo string
+	if info.AdditionalInfo != "" {
+		additionalInfo = " *  " + info.AdditionalInfo + ";\n"
+	}
 
 	// add total time info to additional info
 	var isShowTime bool
@@ -229,7 +231,7 @@ func foTableHeaderAndFooter(operator OperatorStruct) string {
             <fo:table-cell><fo:block>操作者</fo:block></fo:table-cell>
             <fo:table-cell><fo:block>` + operator.Position + `</fo:block></fo:table-cell>
 						<fo:table-cell background-color="white" border-after-color="white" border-width="0.75pt" border-style="solid"><fo:block/></fo:table-cell>
-				`
+						`
 
 	var foTableHeaderText string
 	for _, columnSetting := range columnSettings {
