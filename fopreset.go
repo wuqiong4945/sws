@@ -382,14 +382,14 @@ func processTableBodyContent(process ProcessStruct, processNumberString string) 
 			processTextContent += `<fo:table-cell>`
 			if process.Parts != nil {
 				for _, part := range process.Parts {
-					partString := part.Number
-					if part.Name != "" {
-						if partString == "" {
-							partString = part.Name
-						} else {
-							partString = part.Name + ":" + partString
-						}
-					}
+					// partString := part.Number
+					// if part.Name != "" {
+					// if partString == "" {
+					// partString = part.Name
+					// } else {
+					// partString = part.Name + ":" + partString
+					// }
+					// }
 					if part.Quantity != "" {
 						partString += "*" + part.Quantity
 					}
