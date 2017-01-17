@@ -494,9 +494,9 @@ func processPicBlockContent(processContent []ProcessContent) (picCellBlock strin
 					imageFile, _ := os.Open(imageUrl)
 					var imageConf image.Config
 					switch {
-					case strings.HasSuffix(imageUrl, ".png"):
+					case strings.HasSuffix(imageUrl, ".png") || strings.HasSuffix(imageUrl, ".PNG"):
 						imageConf, _ = png.DecodeConfig(imageFile)
-					case strings.HasSuffix(imageUrl, ".jpg"):
+					case strings.HasSuffix(imageUrl, ".jpg") || strings.HasSuffix(imageUrl, ".JPG"):
 						imageConf, _ = jpeg.DecodeConfig(imageFile)
 					default:
 						imageConf.Width, imageConf.Height = picWidth, picHeight
