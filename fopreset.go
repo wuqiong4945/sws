@@ -254,11 +254,11 @@ func foTableBody(swsSrcContent *SwsStruct) string {
 	xmlPictureCellHead := `
 			<fo:table-body>
           <fo:table-row border-width="0.75pt" border-style="solid">
-            <fo:table-cell display-align="before" number-columns-spanned="6" number-rows-spanned="100">
+            <fo:table-cell display-align="before" number-columns-spanned="6" number-rows-spanned="120">
 						`
 	xmlPictureCellEnd := `
 						</fo:table-cell>
-						<fo:table-cell number-rows-spanned="100"><fo:block/></fo:table-cell>
+						<fo:table-cell number-rows-spanned="120"><fo:block/></fo:table-cell>
 					</fo:table-row>
 					`
 
@@ -382,7 +382,7 @@ func processTableBodyContent(process ProcessStruct, processNumberString string) 
 			processTextContent += `<fo:table-cell>`
 			if process.Parts != nil {
 				for _, part := range process.Parts {
-					// partString := part.Number
+					partString := part.Number
 					// if part.Name != "" {
 					// if partString == "" {
 					// partString = part.Name
