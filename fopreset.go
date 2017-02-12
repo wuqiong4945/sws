@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+var imageRowSpan int = 120
+
 func foXmlAndRootHead() string {
 	fontfamily := cfg.Section("font").Key("fontfamily").MustString("Microsoft JhengHei, serif")
 	fontsize := cfg.Section("font").Key("fontsize").MustString("7")
@@ -254,11 +256,14 @@ func foTableBody(swsSrcContent *SwsStruct) string {
 	xmlPictureCellHead := `
 			<fo:table-body>
           <fo:table-row border-width="0.75pt" border-style="solid">
-            <fo:table-cell display-align="before" number-columns-spanned="6" number-rows-spanned="120">
+            <fo:table-cell display-align="before"
+							number-columns-spanned="6" number-rows-spanned="` + strconv.Itoa(imageRowSpan) + `">
 						`
 	xmlPictureCellEnd := `
 						</fo:table-cell>
-						<fo:table-cell number-rows-spanned="120"><fo:block/></fo:table-cell>
+						<fo:table-cell number-rows-spanned="` + strconv.Itoa(imageRowSpan) + `">
+							<fo:block/>
+						</fo:table-cell>
 					</fo:table-row>
 					`
 
@@ -282,7 +287,7 @@ func foTableBody(swsSrcContent *SwsStruct) string {
 	picCellBlock := processPicBlockContent(processContent)
 	xmlPictureCellString := xmlPictureCellHead + picCellBlock + xmlPictureCellEnd
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < imageRowSpan; i++ {
 		xmlTextCellString += `
 			<fo:table-row height="5mm" border-width="0.75pt" border-style="solid">
 				<fo:table-cell><fo:block/></fo:table-cell>
