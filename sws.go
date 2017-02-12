@@ -53,10 +53,10 @@ type ProcessStruct struct {
 }
 
 type PartStruct struct {
-	Name     string `xml:"name,attr"`
-	Quantity string `xml:"quantity,attr"`
-	Image    string `xml:"image,attr"`
 	Number   string `xml:"number,attr"`
+	Quantity string `xml:"quantity,attr"`
+	Family   string `xml:"family,attr"`
+	Name     string `xml:"name,attr"`
 }
 
 type ToolStruct struct {
