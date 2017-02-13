@@ -12,6 +12,18 @@ import (
 
 var imageRowSpan int = 120
 
+func foContentString(swsSrcContent *SwsStruct) (contentString string) {
+	contentString = foXmlAndRootHead() +
+		foLayout() +
+		foStaticContent(swsSrcContent) +
+		foTableHeadAndColumn() +
+		foTableHeaderAndFooter(swsSrcContent.Operator) +
+		foTableBody(swsSrcContent) +
+		foXmlEnd()
+
+	return
+}
+
 func foXmlAndRootHead() string {
 	fontfamily := cfg.Section("font").Key("fontfamily").MustString("Microsoft JhengHei, serif")
 	fontsize := cfg.Section("font").Key("fontsize").MustString("7")

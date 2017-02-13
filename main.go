@@ -96,13 +96,7 @@ func createSws(srcFolder, swsFolder string) {
 			printError(err)
 			defer cacheFile.Close()
 
-			foString := foXmlAndRootHead() +
-				foLayout() +
-				foStaticContent(swsSrcContent) +
-				foTableHeadAndColumn() +
-				foTableHeaderAndFooter(swsSrcContent.Operator) +
-				foTableBody(swsSrcContent) +
-				foXmlEnd()
+			foString := foContentString(swsSrcContent)
 
 			cacheFile.WriteString(foString)
 
