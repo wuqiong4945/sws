@@ -24,6 +24,10 @@ func main() {
 	srcFolder := cfg.Section("general").Key("srcfolder").MustString("src")
 	swsFolder := cfg.Section("general").Key("swsfolder").MustString("sws")
 
+	timeFile, err := os.Create("time.txt")
+	printError(err)
+	timeFile.Close()
+
 	os.MkdirAll(foFolder, os.ModeDir|os.ModePerm)
 	createSws(srcFolder, swsFolder)
 
@@ -40,12 +44,10 @@ func createSws(srcFolder, swsFolder string) {
 		return
 	}
 
+	var tvgTimeList string
 	// main loop, deal with all src xml files
 	for _, srcFileInfo := range srcFileInfoList {
 		if srcFileInfo.IsDir() {
-			if !strings.HasPrefix(srcFileInfo.Name(), ".") {
-				createSws(srcFolder+"/"+srcFileInfo.Name(), swsFolder+"/"+srcFileInfo.Name())
-			}
 			continue
 		}
 		if !strings.HasSuffix(srcFileInfo.Name(), ".xml") {
@@ -68,19 +70,9 @@ func createSws(srcFolder, swsFolder string) {
 			continue
 		}
 
-		// get column information
-		_, err = cfg.GetSection(swsSrcContent.Info.Column)
-		if err == nil {
-			columnSettings = cfg.Section(swsSrcContent.Info.Column).Keys()
-		} else {
-			columnSettings = cfg.Section("defaultcolumn").Keys()
-			log.Println(swsSrcContent.Info.Column + " section does not exist, use default column settings.")
-		}
-
-		// get file modified time
-		if swsSrcContent.Info.UpdateTime == "" {
-			swsSrcContent.Info.UpdateTime = srcFileInfo.ModTime().Format("2006-01-02")
-		}
+		tvgTimeList += swsSrcContent.Operator.Station +
+			swsSrcContent.Operator.Position +
+			" " + tvgTime(swsSrcContent) + "\n"
 
 		swsFileInfo, err := os.Stat(swsFolder + "/" + fileName + ".pdf")
 		if os.IsNotExist(err) || srcFileInfo.ModTime().After(swsFileInfo.ModTime()) {
@@ -90,6 +82,20 @@ func createSws(srcFolder, swsFolder string) {
 			if err != nil && !os.IsNotExist(err) {
 				printError(err)
 				continue
+			}
+
+			// get column information
+			_, err = cfg.GetSection(swsSrcContent.Info.Column)
+			if err == nil {
+				columnSettings = cfg.Section(swsSrcContent.Info.Column).Keys()
+			} else {
+				columnSettings = cfg.Section("defaultcolumn").Keys()
+				log.Println(swsSrcContent.Info.Column + " section does not exist, use defaultcolumn settings.")
+			}
+
+			// get file modified time
+			if swsSrcContent.Info.UpdateTime == "" {
+				swsSrcContent.Info.UpdateTime = srcFileInfo.ModTime().Format("2006-01-02")
 			}
 
 			cacheFile, err := os.OpenFile(foFolder+"/"+fileName+".fo", os.O_CREATE|os.O_RDWR, os.ModePerm)
@@ -110,21 +116,43 @@ func createSws(srcFolder, swsFolder string) {
 				"-fo", foFolder+pathSeparator+fileName+".fo",
 				"-pdf", swsFolder+pathSeparator+fileName+".pdf").Output()
 
-			printError(err)
-			if string(out) != "" {
-				log.Println(string(out))
-			}
 			if err == nil {
 				log.Println(fileName + ".pdf is created.")
 			} else {
 				log.Println(fileName + ".pdf is not created.")
 			}
-
+			printError(err)
+			if string(out) != "" {
+				log.Println(string(out))
+			}
 		} else {
 			log.Println(srcFileInfo.Name() + " is not changed.")
 		}
 	}
 
+	timeFile, err := os.OpenFile("time.txt", os.O_RDWR|os.O_APPEND, 0666)
+	printError(err)
+	defer timeFile.Close()
+	timeFile.WriteString(tvgTimeList)
+
+	for _, srcFileInfo := range srcFileInfoList {
+		if srcFileInfo.IsDir() && !strings.HasPrefix(srcFileInfo.Name(), ".") {
+			createSws(srcFolder+"/"+srcFileInfo.Name(), swsFolder+"/"+srcFileInfo.Name())
+		}
+	}
+}
+
+func tvgTime(swsSrcContent *SwsStruct) (totalTime string) {
+	var time float32
+	for _, process := range swsSrcContent.Operator.Processes {
+		time += process.Time
+		for _, subprocess := range process.SubProcesses {
+			time += subprocess.Time
+		}
+	}
+	totalTime = fmt.Sprintf("%.1f", time*60)
+
+	return
 }
 
 func printError(err error) {
