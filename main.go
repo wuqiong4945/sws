@@ -71,8 +71,8 @@ func createSws(srcFolder, swsFolder string) {
 		}
 
 		tvgTimeList += swsSrcContent.Operator.Station +
-			swsSrcContent.Operator.Position +
-			" " + tvgTime(swsSrcContent) + "\n"
+			"_" + swsSrcContent.Operator.Position +
+			"\t" + tvgTime(swsSrcContent) + "\n"
 
 		swsFileInfo, err := os.Stat(swsFolder + "/" + fileName + ".pdf")
 		if os.IsNotExist(err) || srcFileInfo.ModTime().After(swsFileInfo.ModTime()) {
@@ -133,6 +133,7 @@ func createSws(srcFolder, swsFolder string) {
 	timeFile, err := os.OpenFile("time.txt", os.O_RDWR|os.O_APPEND, 0666)
 	printError(err)
 	defer timeFile.Close()
+	tvgTimeList += "\n"
 	timeFile.WriteString(tvgTimeList)
 
 	for _, srcFileInfo := range srcFileInfoList {
