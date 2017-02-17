@@ -60,15 +60,18 @@ func foLayout() string {
 	return s
 }
 
-func totalProcessTime(processes []ProcessStruct) (totalTime float32) {
+func totalProcessTime(swsSrcContent *SwsStruct) (valueTime, noneValueTime, waitingTime, totalTime float32) {
+	processes := swsSrcContent.Operator.Processes
 	for _, process := range processes {
-		if process.Time != 0 {
-			totalTime += process.Time * 60
-		}
-		if process.SubProcesses != nil {
-			totalTime += totalProcessTime(process.SubProcesses)
+		valueTime += process.Time * 60
+		noneValueTime += process.Nvtime * 60
+		for _, subprocess := range process.SubProcesses {
+			valueTime += subprocess.Time * 60
+			noneValueTime += subprocess.Nvtime * 60
 		}
 	}
+	waitingTime = swsSrcContent.Operator.Wtime
+	totalTime = valueTime + noneValueTime + waitingTime
 	return
 }
 
@@ -86,14 +89,15 @@ func foStaticContent(swsSrcContent *SwsStruct) string {
 	var isShowTime bool
 	for _, columnSetting := range columnSettings {
 		vals := columnSetting.Strings(",")
-		if vals[0] == "time" {
+		if vals[0] == "vtime" || vals[0] == "nvtime" {
 			isShowTime = true
 			break
 		}
 	}
 	if isShowTime == true {
-		totalTime := totalProcessTime(swsSrcContent.Operator.Processes)
-		additionalInfo += blockBreak + fmt.Sprintf(" *  总时间为 %.0f 秒\n", totalTime)
+		valueTime, noneValueTime, waitingTime, totalTime := totalProcessTime(swsSrcContent)
+		additionalInfo += blockBreak +
+			fmt.Sprintf(" *  增值时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒, 非增值时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒, 等待时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒, 总时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒\n", valueTime, noneValueTime, waitingTime, totalTime)
 	}
 
 	var title string
@@ -190,7 +194,7 @@ func foStaticContent(swsSrcContent *SwsStruct) string {
             <fo:table-row height="5mm" border-width="0.75pt" border-style="solid">
               <fo:table-cell><fo:block>部门</fo:block></fo:table-cell>
               <fo:table-cell><fo:block>` + info.Department + `</fo:block></fo:table-cell>
-              <fo:table-cell number-rows-spanned="2" color="red" text-align="left" border-before-color="white" border-end-color="white" border-width="0.75pt" border-style="solid">
+              <fo:table-cell number-rows-spanned="2" color="blue" text-align="left" border-before-color="white" border-end-color="white" border-width="0.75pt" border-style="solid">
 								<fo:block>` + additionalInfo + `</fo:block>
               </fo:table-cell>
             </fo:table-row>
@@ -376,12 +380,12 @@ func processTableBodyContent(process ProcessStruct, processNumberString string) 
 				processTextContent += `<fo:block></fo:block>` + "\n"
 			}
 			processTextContent += "</fo:table-cell>\n"
-		case "time":
-			var time string
-			if process.Time != 0 {
-				time = fmt.Sprintf("%.1f", process.Time*60)
-			}
-			processTextContent += `<fo:table-cell><fo:block>` + time + `</fo:block></fo:table-cell>` + "\n"
+		case "vtime":
+			vtime := fmt.Sprintf("%.1f", process.Time*60)
+			processTextContent += `<fo:table-cell><fo:block>` + vtime + `</fo:block></fo:table-cell>` + "\n"
+		case "nvtime":
+			nvtime := fmt.Sprintf("%.1f", process.Nvtime*60)
+			processTextContent += `<fo:table-cell><fo:block>` + nvtime + `</fo:block></fo:table-cell>` + "\n"
 		case "tool":
 			processTextContent += `<fo:table-cell><fo:block>` + process.Tool.Type + `</fo:block></fo:table-cell>` + "\n"
 		case "torque":

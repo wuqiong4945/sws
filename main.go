@@ -16,6 +16,7 @@ import (
 var cfg *ini.File
 var columnSettings []*ini.Key
 var foFolder string = "fo"
+var timeFileName string = "time.csv"
 
 func main() {
 	var err error
@@ -24,8 +25,10 @@ func main() {
 	srcFolder := cfg.Section("general").Key("srcfolder").MustString("src")
 	swsFolder := cfg.Section("general").Key("swsfolder").MustString("sws")
 
-	timeFile, err := os.Create("time.txt")
+	timeFile, err := os.Create(timeFileName)
 	printError(err)
+	csvFileTitle := `"station";"valueTime";"noneValueTime";"waitingTime";"totalTime"` + "\n"
+	timeFile.WriteString(csvFileTitle)
 	timeFile.Close()
 
 	os.MkdirAll(foFolder, os.ModeDir|os.ModePerm)
@@ -37,14 +40,14 @@ func main() {
 func createSws(srcFolder, swsFolder string) {
 	os.MkdirAll(swsFolder, os.ModeDir|os.ModePerm)
 
-	fmt.Printf("\n-dir %+v\n", srcFolder)
+	fmt.Printf("\n-dir %s\n", srcFolder)
 	srcFileInfoList, err := ioutil.ReadDir(srcFolder)
 	if err != nil {
 		printError(err)
 		return
 	}
 
-	var tvgTimeList string
+	tvgTimeList := "\"" + srcFolder + "\"\n"
 	// main loop, deal with all src xml files
 	for _, srcFileInfo := range srcFileInfoList {
 		if srcFileInfo.IsDir() {
@@ -70,9 +73,14 @@ func createSws(srcFolder, swsFolder string) {
 			continue
 		}
 
-		tvgTimeList += swsSrcContent.Operator.Station +
-			"_" + swsSrcContent.Operator.Position +
-			"\t" + tvgTime(swsSrcContent) + "\n"
+		valueTime, noneValueTime, waitingTime, totalTime := totalProcessTime(swsSrcContent)
+		tvgTimeList += "\"" + swsSrcContent.Operator.Station +
+			"_" + swsSrcContent.Operator.Position + "\";" +
+			fmt.Sprintf("\"%.1f\";", valueTime) +
+			fmt.Sprintf("\"%.1f\";", noneValueTime) +
+			fmt.Sprintf("\"%.1f\";", waitingTime) +
+			fmt.Sprintf("\"%.1f\";", totalTime) +
+			"\n"
 
 		swsFileInfo, err := os.Stat(swsFolder + "/" + fileName + ".pdf")
 		if os.IsNotExist(err) || srcFileInfo.ModTime().After(swsFileInfo.ModTime()) {
@@ -85,13 +93,15 @@ func createSws(srcFolder, swsFolder string) {
 			}
 
 			// get column information
-			_, err = cfg.GetSection(swsSrcContent.Info.Column)
-			if err == nil {
-				columnSettings = cfg.Section(swsSrcContent.Info.Column).Keys()
-			} else {
-				columnSettings = cfg.Section("defaultcolumn").Keys()
+			if swsSrcContent.Info.Column == "" {
+				swsSrcContent.Info.Column = "defaultcolumn"
+			}
+			columnSetion, err := cfg.GetSection(swsSrcContent.Info.Column)
+			if err != nil {
+				columnSetion = cfg.Section("defaultcolumn")
 				log.Println(swsSrcContent.Info.Column + " section does not exist, use defaultcolumn settings.")
 			}
+			columnSettings = columnSetion.Keys()
 
 			// get file modified time
 			if swsSrcContent.Info.UpdateTime == "" {
@@ -119,7 +129,7 @@ func createSws(srcFolder, swsFolder string) {
 			if err == nil {
 				log.Println(fileName + ".pdf is created.")
 			} else {
-				log.Println(fileName + ".pdf is not created.")
+				log.Println(fileName + ".pdf is not created, error information is :")
 			}
 			printError(err)
 			if string(out) != "" {
@@ -130,7 +140,7 @@ func createSws(srcFolder, swsFolder string) {
 		}
 	}
 
-	timeFile, err := os.OpenFile("time.txt", os.O_RDWR|os.O_APPEND, 0666)
+	timeFile, err := os.OpenFile(timeFileName, os.O_RDWR|os.O_APPEND, 0666)
 	printError(err)
 	defer timeFile.Close()
 	tvgTimeList += "\n"
@@ -141,19 +151,6 @@ func createSws(srcFolder, swsFolder string) {
 			createSws(srcFolder+"/"+srcFileInfo.Name(), swsFolder+"/"+srcFileInfo.Name())
 		}
 	}
-}
-
-func tvgTime(swsSrcContent *SwsStruct) (totalTime string) {
-	var time float32
-	for _, process := range swsSrcContent.Operator.Processes {
-		time += process.Time
-		for _, subprocess := range process.SubProcesses {
-			time += subprocess.Time
-		}
-	}
-	totalTime = fmt.Sprintf("%.1f", time*60)
-
-	return
 }
 
 func printError(err error) {
