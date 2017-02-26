@@ -7,16 +7,19 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/go-ini/ini"
 )
 
 var cfg *ini.File
+
+// var layoutCfg *ini.File
 var columnSettings []*ini.Key
 var foFolder string = "fo"
 var timeFileName string = "time.csv"
+var areas []AreaStruct
 
 func main() {
 	var err error
@@ -25,16 +28,50 @@ func main() {
 	srcFolder := cfg.Section("general").Key("srcfolder").MustString("src")
 	swsFolder := cfg.Section("general").Key("swsfolder").MustString("sws")
 
+	initAreas()
+
 	timeFile, err := os.Create(timeFileName)
 	printError(err)
-	csvFileTitle := `"station";"valueTime";"noneValueTime";"waitingTime";"totalTime"` + "\n"
+	csvFileTitle := "station,valueTime,noneValueTime,waitingTime,totalTime\n"
 	timeFile.WriteString(csvFileTitle)
 	timeFile.Close()
 
 	os.MkdirAll(foFolder, os.ModeDir|os.ModePerm)
 	createSws(srcFolder, swsFolder)
-
 	os.RemoveAll(foFolder)
+
+	// fmt.Printf("%v\n", areas)
+	for _, area := range areas {
+		drawLayout(area)
+	}
+}
+
+func initAreas() {
+	layoutCfg, err := ini.Load("layout.ini")
+	printError(err)
+	sections := layoutCfg.Sections()
+	for _, section := range sections {
+		if section.Name() == "DEFAULT" {
+			continue
+		}
+
+		var area AreaStruct
+		area.Name = section.Name()
+		keys := section.Keys()
+		for _, key := range keys {
+			var station StationStruct
+			station.Name = key.Name()
+			position := key.Strings(",")
+			station.Position.X, _ = strconv.Atoi(position[0])
+			station.Position.Y, _ = strconv.Atoi(position[1])
+			station.Position.R, _ = strconv.ParseFloat(position[2], 64)
+			// station.Position.W, _ = strconv.Atoi(position[3])
+			// station.Position.H, _ = strconv.Atoi(position[4])
+
+			area.Stations = append(area.Stations, station)
+		}
+		areas = append(areas, area)
+	}
 }
 
 func createSws(srcFolder, swsFolder string) {
@@ -47,7 +84,7 @@ func createSws(srcFolder, swsFolder string) {
 		return
 	}
 
-	tvgTimeList := "\"" + srcFolder + "\"\n"
+	tvgTimeList := srcFolder + "\n"
 	// main loop, deal with all src xml files
 	for _, srcFileInfo := range srcFileInfoList {
 		if srcFileInfo.IsDir() {
@@ -66,22 +103,25 @@ func createSws(srcFolder, swsFolder string) {
 		data, err := ioutil.ReadAll(srcFile)
 		printError(err)
 
-		swsSrcContent := new(SwsStruct)
-		err = xml.Unmarshal(data, swsSrcContent)
+		// swsSrcContent := new(SwsStruct)
+		var swsSrcContent SwsStruct
+		err = xml.Unmarshal(data, &swsSrcContent)
 		if err != nil {
 			printError(err)
 			continue
 		}
 
-		valueTime, noneValueTime, waitingTime, totalTime := totalProcessTime(swsSrcContent)
-		tvgTimeList += "\"" + swsSrcContent.Operator.Station +
-			"_" + swsSrcContent.Operator.Position + "\";" +
-			fmt.Sprintf("\"%.1f\";", valueTime) +
-			fmt.Sprintf("\"%.1f\";", noneValueTime) +
-			fmt.Sprintf("\"%.1f\";", waitingTime) +
-			fmt.Sprintf("\"%.1f\";", totalTime) +
+		// output time information to time.csv
+		operationTime := totalProcessTime(swsSrcContent)
+		tvgTimeList += swsSrcContent.Operator.Station +
+			"_" + swsSrcContent.Operator.Position + "," +
+			fmt.Sprintf("%.1f,", operationTime.ValueTime) +
+			fmt.Sprintf("%.1f,", operationTime.NoneValueTime) +
+			fmt.Sprintf("%.1f,", operationTime.WaitingTime) +
+			fmt.Sprintf("%.1f,", operationTime.TotalTime) +
 			"\n"
 
+		// compare src and pdf modified time. if src file new, create pdf
 		swsFileInfo, err := os.Stat(swsFolder + "/" + fileName + ".pdf")
 		if os.IsNotExist(err) || srcFileInfo.ModTime().After(swsFileInfo.ModTime()) {
 			err = os.Remove(foFolder + "/" + fileName + ".fo")
@@ -108,19 +148,18 @@ func createSws(srcFolder, swsFolder string) {
 				swsSrcContent.Info.UpdateTime = srcFileInfo.ModTime().Format("2006-01-02")
 			}
 
+			// build fo temperory file
 			cacheFile, err := os.OpenFile(foFolder+"/"+fileName+".fo", os.O_CREATE|os.O_RDWR, os.ModePerm)
 			printError(err)
 			defer cacheFile.Close()
-
 			foString := foContentString(swsSrcContent)
-
 			cacheFile.WriteString(foString)
 
 			pathSeparator := string(os.PathSeparator)
 			var fopCommand string = "fop"
-			if runtime.GOOS == "windows" {
-				fopCommand += ".cmd"
-			}
+			// if runtime.GOOS == "windows" {
+			// fopCommand += ".cmd"
+			// }
 			out, err := exec.Command("fop"+pathSeparator+fopCommand,
 				"-c", "fop"+pathSeparator+"fop.xconf",
 				"-fo", foFolder+pathSeparator+fileName+".fo",
@@ -138,17 +177,38 @@ func createSws(srcFolder, swsFolder string) {
 		} else {
 			log.Println(srcFileInfo.Name() + " is not changed.")
 		}
+
+		fillOperatorInfoToStation(swsSrcContent)
 	}
 
+	// write time information to time.csv file
 	timeFile, err := os.OpenFile(timeFileName, os.O_RDWR|os.O_APPEND, 0666)
 	printError(err)
 	defer timeFile.Close()
 	tvgTimeList += "\n"
 	timeFile.WriteString(tvgTimeList)
 
+	// build sub dir files
 	for _, srcFileInfo := range srcFileInfoList {
 		if srcFileInfo.IsDir() && !strings.HasPrefix(srcFileInfo.Name(), ".") {
 			createSws(srcFolder+"/"+srcFileInfo.Name(), swsFolder+"/"+srcFileInfo.Name())
+		}
+	}
+}
+
+func fillOperatorInfoToStation(swsSrcContent SwsStruct) {
+	stationName := swsSrcContent.Operator.Station
+	for i, area := range areas {
+		for j, station := range area.Stations {
+			if station.Name != stationName {
+				continue
+			}
+			// var operatorInfo OperatorInfoStruct
+			// operatorInfo.Position = swsSrcContent.Operator.Position
+			// operatorInfo.OperationTime = totalProcessTime(swsSrcContent)
+			areas[i].Stations[j].Swses = append(areas[i].Stations[j].Swses, swsSrcContent)
+			// fmt.Println(station.Name + " " + stationName)
+			// fmt.Printf("%#v\n", areas[i].Stations[j])
 		}
 	}
 }

@@ -12,7 +12,7 @@ import (
 
 var imageRowSpan int = 120
 
-func foContentString(swsSrcContent *SwsStruct) (contentString string) {
+func foContentString(swsSrcContent SwsStruct) (contentString string) {
 	contentString = foXmlAndRootHead() +
 		foLayout() +
 		foStaticContent(swsSrcContent) +
@@ -60,22 +60,26 @@ func foLayout() string {
 	return s
 }
 
-func totalProcessTime(swsSrcContent *SwsStruct) (valueTime, noneValueTime, waitingTime, totalTime float32) {
+type OperationTimeStruct struct {
+	ValueTime, NoneValueTime, WaitingTime, TotalTime float32
+}
+
+func totalProcessTime(swsSrcContent SwsStruct) (operationTime OperationTimeStruct) {
 	processes := swsSrcContent.Operator.Processes
 	for _, process := range processes {
-		valueTime += process.Time * 60
-		noneValueTime += process.Nvtime * 60
+		operationTime.ValueTime += process.Time * 60
+		operationTime.NoneValueTime += process.Nvtime * 60
 		for _, subprocess := range process.SubProcesses {
-			valueTime += subprocess.Time * 60
-			noneValueTime += subprocess.Nvtime * 60
+			operationTime.ValueTime += subprocess.Time * 60
+			operationTime.NoneValueTime += subprocess.Nvtime * 60
 		}
 	}
-	waitingTime = swsSrcContent.Operator.Wtime
-	totalTime = valueTime + noneValueTime + waitingTime
+	operationTime.WaitingTime = swsSrcContent.Operator.Wtime
+	operationTime.TotalTime = operationTime.ValueTime + operationTime.NoneValueTime + operationTime.WaitingTime
 	return
 }
 
-func foStaticContent(swsSrcContent *SwsStruct) string {
+func foStaticContent(swsSrcContent SwsStruct) string {
 	info := swsSrcContent.Info
 	safety := swsSrcContent.Operator.Safety
 
@@ -95,9 +99,9 @@ func foStaticContent(swsSrcContent *SwsStruct) string {
 		}
 	}
 	if isShowTime == true {
-		valueTime, noneValueTime, waitingTime, totalTime := totalProcessTime(swsSrcContent)
+		operationTime := totalProcessTime(swsSrcContent)
 		additionalInfo += blockBreak +
-			fmt.Sprintf(" *  增值时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒, 非增值时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒, 等待时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒, 总时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒\n", valueTime, noneValueTime, waitingTime, totalTime)
+			fmt.Sprintf(" *  增值时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒, 非增值时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒, 等待时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒, 总时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒\n", operationTime.ValueTime, operationTime.NoneValueTime, operationTime.WaitingTime, operationTime.TotalTime)
 	}
 
 	var title string
@@ -268,7 +272,7 @@ func foTableHeaderAndFooter(operator OperatorStruct) string {
 	return foTableHeaderPic + foTableHeaderText + foTableFooter
 }
 
-func foTableBody(swsSrcContent *SwsStruct) string {
+func foTableBody(swsSrcContent SwsStruct) string {
 	xmlPictureCellHead := `
 			<fo:table-body>
           <fo:table-row border-width="0.75pt" border-style="solid">
