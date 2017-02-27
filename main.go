@@ -65,8 +65,8 @@ func initAreas() {
 			station.Position.X, _ = strconv.Atoi(position[0])
 			station.Position.Y, _ = strconv.Atoi(position[1])
 			station.Position.R, _ = strconv.ParseFloat(position[2], 64)
-			// station.Position.W, _ = strconv.Atoi(position[3])
-			// station.Position.H, _ = strconv.Atoi(position[4])
+			station.Position.W, _ = strconv.Atoi(position[3])
+			station.Position.H, _ = strconv.Atoi(position[4])
 
 			area.Stations = append(area.Stations, station)
 		}
