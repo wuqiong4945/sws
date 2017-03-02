@@ -38,8 +38,26 @@ func drawStation(canvas *svg.SVG, station StationStruct) {
 	r := station.Position.R
 	w := station.Position.W
 	h := station.Position.H
-	vw := 4600 // vehicle width
-	vh := 2000 // vehicle height
+	vw := station.Position.VW
+	vh := station.Position.VH
+	kind := station.Position.Kind
+
+	folder := "pic"
+	var image string
+	switch kind {
+	case "main":
+		image = folder + "/main.svg"
+	case "ed":
+		image = folder + "/ed.svg"
+	case "pt":
+		image = folder + "/pt.svg"
+	case "door":
+		image = folder + "/door.svg"
+	case "cp":
+		image = folder + "/cp.svg"
+	default:
+		image = folder + "/main.svg"
+	}
 
 	canvas.TranslateRotate(x+w/2, y+h/2, r)
 
@@ -47,16 +65,15 @@ func drawStation(canvas *svg.SVG, station StationStruct) {
 	style := "fill:WhiteSmoke;stroke:black;stroke-width:" + strconv.Itoa(1*h/100)
 	canvas.CenterRect(0, 0, w, h, style)
 
-	canvas.Image(-vw/2, -vh/2, vw, vh, "pic/vehicle.svg")
-	sfontSize := h / 10
+	canvas.Image(-vw/2, -vh/2, vw, vh, image)
+	sfontSize := h / 15
 	sfontStyle := "fill:white;font-size:" + strconv.Itoa(sfontSize) + "px"
-	var spx, spy, epx, epy int
 	ohl, ovl := 14*w/100, 16*h/100 // operator horizontal length and vertical length
 	ow := 10 * h / 100             // operator width
 	for _, sws := range station.Swses {
 		operator := sws.Operator
 		Time := totalProcessTime(sws)
-		rate := Time.TotalTime / 188
+		rate := Time.TotalTime * 100 / 188
 		var strokeColor string
 		switch {
 		case rate > 0 && rate <= 65:
@@ -75,161 +92,112 @@ func drawStation(canvas *svg.SVG, station StationStruct) {
 			";stroke-width:" + strconv.Itoa(ow)
 
 		rateString := fmt.Sprintf("%.0f%%", rate)
+		var spx, spy, epx, epy int
+		var rline, rtext float64 = 0, 0
 		switch operator.Position {
 		case "RF":
 			epx = -5 * w / 100
 			spx = epx - ohl
 			spy = -1*vh/2 - 4*h/100
 			epy = spy
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Text(spx, spy+ow/3, rateString, sfontStyle)
 		case "RM":
 			epx = ohl / 2
 			spx = -1 * epx
 			spy = -1*vh/2 - 14*h/100
 			epy = spy
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Text(spx, spy+ow/3, rateString, sfontStyle)
 		case "RB":
 			spx = 5 * w / 100
 			epx = spx + ohl
 			spy = -1*vh/2 - 4*h/100
 			epy = spy
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Text(spx, spy+ow/3, rateString, sfontStyle)
 		case "LF":
 			epx = -5 * w / 100
 			spx = epx - ohl
 			spy = vh/2 + 4*h/100
 			epy = spy
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Text(spx, spy+ow/3, rateString, sfontStyle)
 		case "LM":
 			epx = ohl / 2
 			spx = -1 * epx
 			spy = vh/2 + 14*h/100
 			epy = spy
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Text(spx, spy+ow/3, rateString, sfontStyle)
 		case "LB":
 			spx = 5 * w / 100
 			epx = spx + ohl
 			spy = vh/2 + 4*h/100
 			epy = spy
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Text(spx, spy+ow/3, rateString, sfontStyle)
 
 		case "MF":
 			spx = -5 * w / 100
 			epx = spx
-			epy = ovl / 2
-			spy = -1 * epy
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Gtransform("rotate(-90," +
-				strconv.Itoa(epx+ow/3) + "," +
-				strconv.Itoa(epy) + ")")
-			canvas.Text(epx+ow/3, epy, rateString, sfontStyle)
-			canvas.Gend()
+			spy = ovl / 2
+			epy = -1 * spy
+			rtext = -90
 		case "MM":
 			spx = 5 * w / 100
 			epx = spx
-			epy = ovl / 2
-			spy = -1 * epy
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Gtransform("rotate(-90," +
-				strconv.Itoa(epx+ow/3) + "," +
-				strconv.Itoa(epy) + ")")
-			canvas.Text(epx+ow/3, epy, rateString, sfontStyle)
-			canvas.Gend()
+			spy = ovl / 2
+			epy = -1 * spy
+			rtext = -90
 		case "MB":
 			spx = 15 * w / 100
 			epx = spx
-			epy = ovl / 2
-			spy = -1 * epy
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Gtransform("rotate(-90," +
-				strconv.Itoa(epx+ow/3) + "," +
-				strconv.Itoa(epy) + ")")
-			canvas.Text(epx+ow/3, epy, rateString, sfontStyle)
-			canvas.Gend()
+			spy = ovl / 2
+			epy = -1 * spy
+			rtext = -90
 
 		case "FM":
 			spx = -38 * w / 100
 			epx = spx
-			epy = ovl / 2
-			spy = -1 * epy
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Gtransform("rotate(-90," +
-				strconv.Itoa(epx+ow/3) + "," +
-				strconv.Itoa(epy) + ")")
-			canvas.Text(epx+ow/3, epy, rateString, sfontStyle)
-			canvas.Gend()
+			spy = ovl / 2
+			epy = -1 * spy
+			rtext = -90
 		case "FR":
 			spx = -30 * w / 100
 			epx = spx
-			epy = ovl / 2
-			spy = -1 * epy
-			canvas.Rotate(-20)
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Gtransform("rotate(-90," +
-				strconv.Itoa(epx+ow/3) + "," +
-				strconv.Itoa(epy) + ")")
-			canvas.Text(epx+ow/3, epy, rateString, sfontStyle)
-			canvas.Gend()
-			canvas.Gend()
+			spy = ovl / 2
+			epy = -1 * spy
+			rline = 20
+			rtext = -90
 		case "FL":
 			spx = -30 * w / 100
 			epx = spx
-			epy = ovl / 2
-			spy = -1 * epy
-			canvas.Rotate(20)
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Gtransform("rotate(-90," +
-				strconv.Itoa(epx+ow/3) + "," +
-				strconv.Itoa(epy) + ")")
-			canvas.Text(epx+ow/3, epy, rateString, sfontStyle)
-			canvas.Gend()
-			canvas.Gend()
+			spy = ovl / 2
+			epy = -1 * spy
+			rline = -20
+			rtext = -90
 
 		case "BM":
 			spx = 38 * w / 100
 			epx = spx
-			epy = ovl / 2
-			spy = -1 * epy
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Gtransform("rotate(-90," +
-				strconv.Itoa(epx+ow/3) + "," +
-				strconv.Itoa(epy) + ")")
-			canvas.Text(epx+ow/3, epy, rateString, sfontStyle)
-			canvas.Gend()
+			spy = ovl / 2
+			epy = -1 * spy
+			rtext = -90
 		case "BR":
 			spx = 30 * w / 100
 			epx = spx
-			epy = ovl / 2
-			spy = -1 * epy
-			canvas.Rotate(-20)
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Gtransform("rotate(-90," +
-				strconv.Itoa(epx+ow/3) + "," +
-				strconv.Itoa(epy) + ")")
-			canvas.Text(epx+ow/3, epy, rateString, sfontStyle)
-			canvas.Gend()
-			canvas.Gend()
+			spy = ovl / 2
+			epy = -1 * spy
+			rline = -20
+			rtext = -90
 		case "BL":
 			spx = 30 * w / 100
 			epx = spx
-			epy = ovl / 2
-			spy = -1 * epy
-			canvas.Rotate(20)
-			canvas.Line(spx, spy, epx, epy, lineStyle)
-			canvas.Gtransform("rotate(-90," +
-				strconv.Itoa(epx+ow/3) + "," +
-				strconv.Itoa(epy) + ")")
-			canvas.Text(epx+ow/3, epy, rateString, sfontStyle)
-			canvas.Gend()
-			canvas.Gend()
-
+			spy = ovl / 2
+			epy = -1 * spy
+			rline = 20
+			rtext = -90
+		default:
+			continue
 		}
+		canvas.Rotate(rline)
+		canvas.Line(spx, spy, epx, epy, lineStyle)
+		canvas.Gtransform("rotate(" +
+			fmt.Sprintf("%.0f,", rtext) +
+			strconv.Itoa(spx+ow/3) + "," +
+			strconv.Itoa(spy+ow/3) + ")")
+		canvas.Text(spx+ow/3, spy+ow/3, operator.Position+":"+rateString, sfontStyle)
+		canvas.Gend()
+		canvas.Gend()
 	}
 	// canvas.Gend()
 	// canvas.TranslateRotate(x+w/2, y+h/2, r)

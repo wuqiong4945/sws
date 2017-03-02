@@ -59,16 +59,34 @@ func initAreas() {
 		area.Name = section.Name()
 		keys := section.Keys()
 		for _, key := range keys {
-			var station StationStruct
-			station.Name = key.Name()
 			position := key.Strings(",")
-			station.Position.X, _ = strconv.Atoi(position[0])
-			station.Position.Y, _ = strconv.Atoi(position[1])
-			station.Position.R, _ = strconv.ParseFloat(position[2], 64)
-			station.Position.W, _ = strconv.Atoi(position[3])
-			station.Position.H, _ = strconv.Atoi(position[4])
+			switch key.Name() {
+			case "position":
+				area.Position.X, _ = strconv.Atoi(position[0])
+				area.Position.Y, _ = strconv.Atoi(position[1])
+				area.Position.R, _ = strconv.ParseFloat(position[2], 64)
+				area.Position.W, _ = strconv.Atoi(position[3])
+				area.Position.H, _ = strconv.Atoi(position[4])
+				continue
 
-			area.Stations = append(area.Stations, station)
+			case "papersize":
+				area.Paper.W, _ = strconv.Atoi(position[0])
+				area.Paper.H, _ = strconv.Atoi(position[1])
+				continue
+
+			default:
+				var station StationStruct
+				station.Name = key.Name()
+				station.Position.X, _ = strconv.Atoi(position[0])
+				station.Position.Y, _ = strconv.Atoi(position[1])
+				station.Position.R, _ = strconv.ParseFloat(position[2], 64)
+				station.Position.W, _ = strconv.Atoi(position[3])
+				station.Position.H, _ = strconv.Atoi(position[4])
+				station.Position.VW, _ = strconv.Atoi(position[5])
+				station.Position.VH, _ = strconv.Atoi(position[6])
+				station.Position.Kind = position[7]
+				area.Stations = append(area.Stations, station)
+			}
 		}
 		areas = append(areas, area)
 	}

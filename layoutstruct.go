@@ -12,9 +12,11 @@ type PaperStruct struct {
 }
 
 type PositionStruct struct {
-	X, Y int
-	R    float64
-	W, H int
+	X, Y   int
+	R      float64
+	W, H   int
+	VW, VH int
+	Kind   string
 }
 
 type StationStruct struct {
