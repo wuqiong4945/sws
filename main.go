@@ -7,28 +7,37 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 
 	"github.com/go-ini/ini"
 )
 
 var cfg *ini.File
-
-// var layoutCfg *ini.File
 var columnSettings []*ini.Key
+
 var foFolder string = "fo"
 var timeFileName string = "time.csv"
-var areas []AreaStruct
+var stations map[string]StationStruct
+
+type StationStruct struct {
+	Name          string
+	OperatorInfos []OperatorInfoStruct
+}
+
+type OperatorInfoStruct struct {
+	Position      string
+	OperationTime OperationTimeStruct
+	SwsContent    SwsStruct
+}
 
 func main() {
+	stations = make(map[string]StationStruct)
+
 	var err error
 	cfg, err = ini.Load("sws.ini")
 	printError(err)
 	srcFolder := cfg.Section("general").Key("srcfolder").MustString("src")
 	swsFolder := cfg.Section("general").Key("swsfolder").MustString("sws")
-
-	initAreas()
 
 	timeFile, err := os.Create(timeFileName)
 	printError(err)
@@ -40,56 +49,7 @@ func main() {
 	createSws(srcFolder, swsFolder)
 	os.RemoveAll(foFolder)
 
-	// fmt.Printf("%v\n", areas)
-	for _, area := range areas {
-		drawLayout(area)
-	}
-}
-
-func initAreas() {
-	layoutCfg, err := ini.Load("layout.ini")
-	printError(err)
-	sections := layoutCfg.Sections()
-	for _, section := range sections {
-		if section.Name() == "DEFAULT" {
-			continue
-		}
-
-		var area AreaStruct
-		area.Name = section.Name()
-		keys := section.Keys()
-		for _, key := range keys {
-			position := key.Strings(",")
-			switch key.Name() {
-			case "position":
-				area.Position.X, _ = strconv.Atoi(position[0])
-				area.Position.Y, _ = strconv.Atoi(position[1])
-				area.Position.R, _ = strconv.ParseFloat(position[2], 64)
-				area.Position.W, _ = strconv.Atoi(position[3])
-				area.Position.H, _ = strconv.Atoi(position[4])
-				continue
-
-			case "papersize":
-				area.Paper.W, _ = strconv.Atoi(position[0])
-				area.Paper.H, _ = strconv.Atoi(position[1])
-				continue
-
-			default:
-				var station StationStruct
-				station.Name = key.Name()
-				station.Position.X, _ = strconv.Atoi(position[0])
-				station.Position.Y, _ = strconv.Atoi(position[1])
-				station.Position.R, _ = strconv.ParseFloat(position[2], 64)
-				station.Position.W, _ = strconv.Atoi(position[3])
-				station.Position.H, _ = strconv.Atoi(position[4])
-				station.Position.VW, _ = strconv.Atoi(position[5])
-				station.Position.VH, _ = strconv.Atoi(position[6])
-				station.Position.Kind = position[7]
-				area.Stations = append(area.Stations, station)
-			}
-		}
-		areas = append(areas, area)
-	}
+	fmt.Printf("%v\n", stations)
 }
 
 func createSws(srcFolder, swsFolder string) {
@@ -216,19 +176,35 @@ func createSws(srcFolder, swsFolder string) {
 
 func fillOperatorInfoToStation(swsSrcContent SwsStruct) {
 	stationName := swsSrcContent.Operator.Station
-	for i, area := range areas {
-		for j, station := range area.Stations {
-			if station.Name != stationName {
-				continue
+	position := swsSrcContent.Operator.Position
+	var station StationStruct
+	station.Name = stationName
+	_, isPresent := stations[stationName]
+	if !isPresent {
+		stations[stationName] = station
+	} else {
+		var isPositionPresent bool = false
+		s := stations[stationName]
+		for _, o := range s.OperatorInfos {
+			if o.Position == position {
+				isPositionPresent = true
+				break
 			}
-			// var operatorInfo OperatorInfoStruct
-			// operatorInfo.Position = swsSrcContent.Operator.Position
-			// operatorInfo.OperationTime = totalProcessTime(swsSrcContent)
-			areas[i].Stations[j].Swses = append(areas[i].Stations[j].Swses, swsSrcContent)
-			// fmt.Println(station.Name + " " + stationName)
-			// fmt.Printf("%#v\n", areas[i].Stations[j])
+		}
+		if isPositionPresent == true {
+			return
 		}
 	}
+
+	var operatorInfo OperatorInfoStruct
+	operatorInfo.Position = swsSrcContent.Operator.Position
+	operatorInfo.OperationTime = totalProcessTime(swsSrcContent)
+	operatorInfo.SwsContent = swsSrcContent
+
+	station.OperatorInfos = append(stations[stationName].OperatorInfos, operatorInfo)
+	stations[stationName] = station
+	// fmt.Println(station.Name + " " + stationName)
+	// fmt.Printf("%#v\n", areas[i].Stations[j])
 }
 
 func printError(err error) {

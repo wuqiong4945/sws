@@ -18,7 +18,7 @@ type OperatorStruct struct {
 	Model    string  `xml:"model,attr"`
 	Station  string  `xml:"station,attr"`
 	Position string  `xml:"position,attr"`
-	Wtime    float32 `xml:"wtime,attr"`
+	Wtime    float64 `xml:"wtime,attr"`
 
 	FirstProcessNumber int `xml:"firstProcessNumber,attr"`
 
@@ -39,8 +39,8 @@ type ProcessStruct struct {
 	Option    string  `xml:"option,attr"`
 	Tvg       string  `xml:"tvg,attr"`
 	IsKey     string  `xml:"isKey,attr"`
-	Time      float32 `xml:"time,attr"`
-	Nvtime    float32 `xml:"nvtime,attr"`
+	Time      float64 `xml:"time,attr"`
+	Nvtime    float64 `xml:"nvtime,attr"`
 
 	Description  string        `xml:"description"`
 	Translations []string      `xml:"translation"`

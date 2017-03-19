@@ -61,7 +61,7 @@ func foLayout() string {
 }
 
 type OperationTimeStruct struct {
-	ValueTime, NoneValueTime, WaitingTime, TotalTime float32
+	ValueTime, NoneValueTime, WaitingTime, TotalTime float64
 }
 
 func totalProcessTime(swsSrcContent SwsStruct) (operationTime OperationTimeStruct) {
