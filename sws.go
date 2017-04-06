@@ -21,6 +21,7 @@ type OperatorStruct struct {
 	Wtime    float64 `xml:"wtime,attr"`
 
 	FirstProcessNumber int `xml:"firstProcessNumber,attr"`
+	HC                 int `xml:"HC,attr"`
 
 	Safety    SafetyStruct    `xml:"safety"`
 	Processes []ProcessStruct `xml:"process"`

@@ -2,11 +2,30 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"strconv"
 	"strings"
 )
+
+var xslFileName string = "L.xsl"
+
+func GenerateXslFile(stations map[string]StationStruct) {
+	readStationsInfoFromCsvFile()
+	xslFile, err := os.Create(xslFileName)
+	printError(err)
+	defer xslFile.Close()
+
+	tact := cfg.Section("general").Key("tact").MustFloat64(188)
+	xsl := NewXSL(xslFile)
+	for _, station := range stations {
+		for _, operator := range station.OperatorInfos {
+			xsl.AddOperator(operator, tact)
+		}
+	}
+	xsl.End()
+}
 
 type XSL struct {
 	Writer io.Writer
@@ -20,42 +39,69 @@ func NewXSL(w io.Writer) *XSL {
 	return x
 }
 
-func (self *XSL) AddOperator(station, position string, operatorInfo OperatorInfoStruct) (err error) {
+func (self *XSL) AddOperator(operatorInfo OperatorInfoStruct, tact float64) (err error) {
+	stationName := strings.TrimSpace(operatorInfo.StationName)
+	begin := 0
+	end := len(stationName)
+	if end > 5 {
+		begin = end - 5
+	}
+	stationName = stationName[begin:end]
+
+	position := operatorInfo.Position
+	totalTime := operatorInfo.OperationTime.TotalTime
+	workload := totalTime / tact * 100
+	var positionColourCode string
+	switch {
+	case workload >= 0 && workload <= 70:
+		// positionColour = "red"
+		positionColourCode = "D40000"
+	case workload > 70 && workload <= 80:
+		// positionColour = "yellow"
+		positionColourCode = "D4AA00"
+	case workload > 80 && workload <= 95:
+		// positionColour = "green"
+		positionColourCode = "008000"
+	case workload > 95:
+		// positionColour = "purple"
+		positionColourCode = "800080"
+	default:
+		// positionColour = "green"
+		positionColourCode = "008000"
+	}
+
 	template := `
-	<xsl:template match="node()[@id='60001']/svg:g[@inkscape:label='operator']/svg:image[@inkscape:label='RM']">
+	<xsl:template match="node()[@id='` + stationName + `']/svg:g[@inkscape:label='operator']/svg:image[@inkscape:label='` + position + `']">
 		<xsl:copy>
 			<xsl:apply-templates select="@*|node()"/>
 			<xsl:attribute name="xlink:href">
-				<xsl:text>pic/purple.png</xsl:text>
+				<xsl:text>pic/colour/` + positionColourCode + `.svg</xsl:text>
 			</xsl:attribute>
 		</xsl:copy>
 	</xsl:template>
-
-	<xsl:template match="node()[@id='60001']/svg:g[@inkscape:label='workload']/svg:text[@inkscape:label='RM']">
+	<xsl:template match="node()[@id='` + stationName + `']/svg:g[@inkscape:label='workload']/svg:text[@inkscape:label='` + position + `']">
 		<xsl:copy>
 			<xsl:apply-templates select="@*|node()"/>
-			<xsl:text>added</xsl:text>
+			<xsl:text>` + fmt.Sprintf(position+":%.0f%%", workload) + `</xsl:text>
 		</xsl:copy>
 	</xsl:template>
 
-
-	<xsl:template match="node()[@id='c60001']/svg:g[@inkscape:label='operator']/svg:rect[@inkscape:label='RM']">
+	<xsl:template match="node()[@id='c` + stationName + `']/svg:g[@inkscape:label='operator']/svg:rect[@inkscape:label='` + position + `']">
 		<xsl:copy>
 			<xsl:apply-templates select="@*|node()"/>
 			<xsl:attribute name="style">
 				<xsl:call-template name="replace-string">
 					<xsl:with-param name="text" select="@style"/>
 					<xsl:with-param name="replace" select="'#d35f5f'" />
-					<xsl:with-param name="with" select="'blue'"/>
+					<xsl:with-param name="with" select="'#` + positionColourCode + `'"/>
 				</xsl:call-template>
 			</xsl:attribute>
 		</xsl:copy>
 	</xsl:template>
-
-	<xsl:template match="node()[@id='c60001']/svg:g[@inkscape:label='workload']/svg:text[@inkscape:label='RM']">
+	<xsl:template match="node()[@id='c` + stationName + `']/svg:g[@inkscape:label='workload']/svg:text[@inkscape:label='` + position + `']">
 		<xsl:copy>
 			<xsl:apply-templates select="@*|node()"/>
-			<xsl:text>added</xsl:text>
+			<xsl:text>` + fmt.Sprintf("%.0f / %.0f%%", totalTime, workload) + `</xsl:text>
 		</xsl:copy>
 	</xsl:template>
 `
@@ -122,6 +168,7 @@ func readStationsInfoFromCsvFile() {
 		}
 
 		var operatorInfo OperatorInfoStruct
+		operatorInfo.StationName = info[0]
 		operatorInfo.Position = info[1]
 		operatorInfo.OperationTime.TotalTime, _ = strconv.ParseFloat(info[2], 64)
 

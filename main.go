@@ -25,6 +25,7 @@ type StationStruct struct {
 }
 
 type OperatorInfoStruct struct {
+	StationName   string
 	Position      string
 	OperationTime OperationTimeStruct
 	SwsContent    SwsStruct
@@ -49,7 +50,8 @@ func main() {
 	createSws(srcFolder, swsFolder)
 	os.RemoveAll(foFolder)
 
-	fmt.Printf("%v\n", stations)
+	// GenerateXslFile(stations)
+	// fmt.Printf("%v\n", stations)
 }
 
 func createSws(srcFolder, swsFolder string) {
@@ -197,6 +199,7 @@ func fillOperatorInfoToStation(swsSrcContent SwsStruct) {
 	}
 
 	var operatorInfo OperatorInfoStruct
+	operatorInfo.StationName = stationName
 	operatorInfo.Position = swsSrcContent.Operator.Position
 	operatorInfo.OperationTime = totalProcessTime(swsSrcContent)
 	operatorInfo.SwsContent = swsSrcContent

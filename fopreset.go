@@ -98,10 +98,19 @@ func foStaticContent(swsSrcContent SwsStruct) string {
 			break
 		}
 	}
+
+	tact := cfg.Section("general").Key("tact").MustFloat64(188)
 	if isShowTime == true {
 		operationTime := totalProcessTime(swsSrcContent)
 		additionalInfo += blockBreak +
-			fmt.Sprintf(" *  增值时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒, 非增值时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒, 等待时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒, 总时间为<fo:inline color=\"red\"> %.0f </fo:inline>秒\n", operationTime.ValueTime, operationTime.NoneValueTime, operationTime.WaitingTime, operationTime.TotalTime)
+			fmt.Sprintf("* <fo:inline font-weight=\"bold\">workload:<fo:inline color=\"red\">%.0f%%</fo:inline> (reference %.0f%%)</fo:inline>\n",
+				operationTime.TotalTime/tact*100,
+				(operationTime.ValueTime*1.3+operationTime.WaitingTime)/tact*100) +
+			fmt.Sprintf("- value:<fo:inline color=\"red\">%.0f</fo:inline>s, nonvalue:<fo:inline color=\"red\">%.0f</fo:inline>s, waiting:<fo:inline color=\"red\">%.0f</fo:inline>s, total:<fo:inline color=\"red\">%.0f</fo:inline>s\n",
+				operationTime.ValueTime,
+				operationTime.NoneValueTime,
+				operationTime.WaitingTime,
+				operationTime.TotalTime)
 	}
 
 	var title string
